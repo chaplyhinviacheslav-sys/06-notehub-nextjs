@@ -52,12 +52,16 @@ export default function NotesClient() {
 
       {notesQuery.data && (
         <>
-          <NoteList notes={notesQuery.data.notes} />
-          <Pagination
-            currentPage={page}
-            totalPages={notesQuery.data.totalPages}
-            onPageChange={setPage}
-          />
+          {notesQuery.data.notes.length > 0 && (
+            <NoteList notes={notesQuery.data.notes} />
+          )}
+          {notesQuery.data.totalPages > 1 && (
+            <Pagination
+              currentPage={page}
+              totalPages={notesQuery.data.totalPages}
+              onPageChange={setPage}
+            />
+          )}
         </>
       )}
 
