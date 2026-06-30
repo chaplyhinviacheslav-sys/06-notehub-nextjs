@@ -21,7 +21,7 @@ export interface FetchNotesParams {
   search?: string;
 }
 
-export interface FetchNotesResponse {
+export interface NotesResponse {
   notes: Note[];
   totalPages: number;
 }
@@ -34,8 +34,8 @@ export interface CreateNotePayload {
 
 export async function fetchNotes(
   params: FetchNotesParams
-): Promise<FetchNotesResponse> {
-  const response: AxiosResponse<FetchNotesResponse> = await noteHubApi.get(
+): Promise<NotesResponse> {
+  const response: AxiosResponse<NotesResponse> = await noteHubApi.get(
     '/notes',
     {
       params: {

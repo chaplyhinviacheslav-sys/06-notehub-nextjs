@@ -1,14 +1,13 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import Modal from '@/components/Modal/Modal';
 import NoteForm from '@/components/NoteForm/NoteForm';
 import NoteList from '@/components/NoteList/NoteList';
 import Pagination from '@/components/Pagination/Pagination';
 import SearchBox from '@/components/SearchBox/SearchBox';
-import { createNote, deleteNote, fetchNotes } from '@/lib/api';
-import type { CreateNotePayload } from '@/types/note';
+import { fetchNotes } from '@/lib/api';
 import css from '@/components/NotesPage/NotesPage.module.css';
 
 const perPage = 12;
@@ -18,7 +17,6 @@ export default function NotesClient() {
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const queryClient = useQueryClient();
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -32,22 +30,8 @@ export default function NotesClient() {
   const notesQuery = useQuery({
     queryKey: ['notes', page, debouncedSearch],
     queryFn: () => fetchNotes({ page, perPage, search: debouncedSearch }),
+    placeholderData: keepPreviousData,
     refetchOnMount: false,
-  });
-
-  const createMutation = useMutation({
-    mutationFn: (payload: CreateNotePayload) => createNote(payload),
-    onSuccess: () => {
-      setIsModalOpen(false);
-      void queryClient.invalidateQueries({ queryKey: ['notes'] });
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => deleteNote(id),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['notes'] });
-    },
   });
 
   return (
@@ -68,11 +52,7 @@ export default function NotesClient() {
 
       {notesQuery.data && (
         <>
-          <NoteList
-            notes={notesQuery.data.notes}
-            onDelete={id => deleteMutation.mutate(id)}
-            isDeleting={deleteMutation.isPending}
-          />
+          <NoteList notes={notesQuery.data.notes} />
           <Pagination
             currentPage={page}
             totalPages={notesQuery.data.totalPages}
@@ -83,11 +63,7 @@ export default function NotesClient() {
 
       {isModalOpen && (
         <Modal onClose={() => setIsModalOpen(false)}>
-          <NoteForm
-            onCancel={() => setIsModalOpen(false)}
-            onSubmit={payload => createMutation.mutate(payload)}
-            isSubmitting={createMutation.isPending}
-          />
+          <NoteForm onCancel={() => setIsModalOpen(false)} />
         </Modal>
       )}
     </main>
